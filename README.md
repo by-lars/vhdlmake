@@ -1,4 +1,3 @@
-# Interactive Linear Equation Solver
+# vhdl make
 
-Interactive Linear Equation Solver using gausin elimination algorithm. 
-
+A simple build system for vhdl projects.
