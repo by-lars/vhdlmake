@@ -1,34 +1,40 @@
-#include "Node.h"
+#include "Node.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
-namespace vm
-{
+namespace vm {
     Node::Node(const std::string &path)
         : m_FilePath(path) {
         std::ifstream file(path);
 
         // Make sure file is open
-        if (file.is_open() == false)
-        {
+        if (file.is_open() == false) {
             std::cerr << "Could not find file: " << path << std::endl;
             throw std::runtime_error("Could not find file");
         }
 
+    
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+
+        std::hash<std::string> hash;
+        m_Hash = hash(buffer.str());
+
         // Parse File for entity definitions or component definitions
         std::string word;
-        while (file >> word) {
+        while (buffer >> word) {
             std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
             if (word == "entity") {
                 std::string entity_name;
-                file >> entity_name;
+                buffer >> entity_name;
                 m_EntityDefinitions.push_back(entity_name);
             } else if (word == "component") {
                 std::string component_name;
-                file >> component_name;
+                buffer >> component_name;
                 m_ComponentDefinitions.push_back(component_name);
             }
         }
@@ -38,11 +44,11 @@ namespace vm
         return m_FilePath;
     }
 
-    const std::hash<std::string> &Node::get_hash() const {
+    const size_t &Node::get_hash() const {
         return m_Hash;
     }
 
-    const std::vector<Node::pointer_t> &Node::get_dependants() const {
+    const std::vector<std::pair<std::string, Node::pointer_t>> &Node::get_dependants() const {
         return m_Dependants;
     }
 
@@ -54,7 +60,7 @@ namespace vm
         return m_ComponentDefinitions;
     }
 
-    void Node::add_dependant(Node::pointer_t node) {
+    void Node::add_dependant(const std::pair<std::string, Node::pointer_t>& node) {
         m_Dependants.push_back(node);
     }
 }

@@ -11,19 +11,19 @@ namespace vm {
         Node(const std::string& path);
 
         const std::string& get_file_path() const;
-        const std::hash<std::string>& get_hash() const;
-        const std::vector<Node::pointer_t>& get_dependants() const;
+        const size_t& get_hash() const;
+        const std::vector<std::pair<std::string, Node::pointer_t>>& get_dependants() const;
         const std::vector<std::string>& get_entitiy_definitions() const;
         const std::vector<std::string>& get_component_definitions() const;
 
-        void add_dependant(Node::pointer_t node);
+        void add_dependant(const std::pair<std::string, Node::pointer_t>& node);
 
     private:
         std::string m_FilePath;
-        std::hash<std::string> m_Hash;
+        size_t m_Hash;
         std::vector<std::string> m_EntityDefinitions;
         std::vector<std::string> m_ComponentDefinitions;
-        std::vector<Node::pointer_t> m_Dependants;
+        std::vector<std::pair<std::string, Node::pointer_t>> m_Dependants;
     };
 
 } // namespace vm 

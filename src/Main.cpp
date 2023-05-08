@@ -1,12 +1,6 @@
 #include <iostream>
-#include <string>
-#include <functional>
-#include <filesystem>
-#include <map>
 
-#include "Node.h"
-
-namespace fs = std::filesystem;
+#define VHDLMAKE_VERSION "0.1.0"
 
 // Compile file, make entity usable in other files using components
 // file.vhdl -> file.o ghdl -a <file path> 
@@ -14,36 +8,56 @@ namespace fs = std::filesystem;
 // Link and Gen binary from analysed entities
 // file.o -> executable: ghdl -e <entity name>
 
-int main() {
-    // Iterate over all vhdl files
-    std::unordered_map<std::string, std::shared_ptr<vm::Node>> dag;
+static void version() {
+    std::cout << "vhdlmake v" << VHDLMAKE_VERSION;
 
-    fs::directory_iterator working_dir (std::filesystem::current_path());
-    for(const auto& file : working_dir) {
-        if(file.path().extension() != ".vhdl") {
-            continue;
-        }
+    #ifdef DEBUG 
+        std::cout << " - DEBUG BUILD";
+    #endif
 
-        auto node = std::make_shared<vm::Node>(file.path());
+    std::cout << std::endl;
+}
 
-        for(const auto& entity : node->get_entitiy_definitions()) {     
-            dag.insert({entity, node});            
-        }
+static void help() {
+    version();
+    std::cout << std::endl;
+    std::cout << "help - prints the help menu" << std::endl;
+    std::cout << "version - prints the version of vhdlmake" << std::endl;
+    std::cout << "run - run a target" << std::endl;
+    std::cout << "build - build current directory" << std::endl;
+}
+
+static void build() {
+
+}
+
+
+static void run() {
+
+}
+
+static void unknown_command() {
+    std::cout << "unknown command, enter \"vhdlmake help\" to get a full list of available commands" << std::endl;
+}
+
+int main(int argc, char *argv[]) {
+    if(argc < 2) {
+        help();
+        return EXIT_FAILURE;
     }
 
-
-    // Finish dependency graph by adding all the dependants to the correct nodes
-    for(const auto& node : dag) {
-        for(const auto& dependency : node.second->get_component_definitions()) {
-            dag[dependency]->add_dependant(node.second);
-        }
+    if(argv[1] == "run") {
+        run();
+    } else if(argv[1] == "build") {
+        build();
+    } else if (argv[1] == "help") {
+        help();
+    } else if (argv[1] == "version") {
+        version();
+    } else {
+        unknown_command();
+        return EXIT_FAILURE;
     }
 
-    for(const auto& node : dag) {
-        std::cout << "Node: " << node.first << std::endl;
-        
-        for(const auto& dependant : node.second->get_dependants()) {
-            std::cout << "  " << dependant->get_file_path() << std::endl;
-        }
-    }
+    return EXIT_SUCCESS;
 }  

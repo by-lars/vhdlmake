@@ -66,6 +66,11 @@
         "valarray": "cpp",
         "variant": "cpp",
         "codecvt": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "any": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     }
 }
