@@ -2,90 +2,102 @@
 
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <nlohmann/json.hpp>
+
 #include <fstream>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 namespace vm {
-    DependencyGraph DependencyGraph::from_cache(const std::string& file) {
-        DependencyGraph graph;
-        return graph;
+    DependencyGraph::DependencyGraph(const std::string& directory, const std::string& cache_file) {
+        build_dag(directory);
     }
 
-    DependencyGraph DependencyGraph::build_partitial_dag(const std::string& directory) {
-        DependencyGraph graph;
-        return graph;
-    }
-
-    DependencyGraph DependencyGraph::build_complete_dag(const std::string& directory) {
-        DependencyGraph graph;
-
+    void DependencyGraph::build_dag(const std::string& directory) {
         // Iterate over all vhdl files
         fs::directory_iterator working_dir (directory);
-        for(const auto& file : working_dir) {
-            if(file.path().extension() != ".vhdl") {
+        for(const auto& file_path : working_dir) {
+            if(file_path.path().extension() != ".vhdl") {
                 continue;
             }
 
-            auto node = std::make_shared<vm::Node>(
-                fs::relative(file, directory).string()
-            );
+            // Read file
+            std::ifstream file(file_path.path());
+            std::stringstream buffer;
+            buffer << file.rdbuf();
 
-            for(const auto& entity : node->get_entitiy_definitions()) {     
-                graph.m_Dag.insert({entity, node});            
-            }
+            // Convert path to relative path
+            std::string relative_path = fs::relative(file_path, directory).string();
+
+            // Parse File
+            UnitData data = parse_unit(buffer);  
+
+            // Add Node
+            this->dag[relative_path] = Unit {
+                .Path = relative_path,
+                .Dependants = {},
+                .Entities = data.Entities,
+                .Components = data.Components
+            };
         }
 
-
-        // Finish dependency graph by adding all the dependants to the correct nodes
-        for(const auto& node : graph.m_Dag) {
-            for(const auto& dependency : node.second->get_component_definitions()) {
-                graph.m_Dag[dependency]->add_dependant({node.first, node.second});
-            }
-        }
-
-        return graph;
+        // Resolve dependants
+        
     }
 
-    void DependencyGraph::save_to_cache(const std::string& file) {
-        json data;
+    UnitData DependencyGraph::parse_unit(std::stringstream& unit) {
+        UnitData data;
         
-        for(const auto& node : m_Dag) {
-            data[node.first]["hash"] = node.second->get_hash();
-            data[node.first]["path"] = node.second->get_file_path();
-        
-            for(const auto& dependant : node.second->get_dependants()) {
-                data[node.first]["dependants"].push_back(dependant.first);
+        // Parse file
+        std::string word;
+        while (unit >> word) {
+            std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+            if (word == "entity") {
+                std::string entity_name;
+                unit >> entity_name;
+                data.Entities.push_back(entity_name);
+            } else if (word == "component") {
+                std::string component_name;
+                unit >> component_name;  
+                data.Components.push_back(component_name);
             }
         }
 
-        std::ofstream out_file(file);
-        out_file << std::setw(4) << data << std::endl;
+        return data;
     }
-     
 
-    void DependencyGraph::debug_print() {
-        for(const auto& node : m_Dag) {
+
+    void DependencyGraph::unit_updated(const std::string& unit) {
+        // ReParse unit for new entities, or new components
+    }
+
+    void DependencyGraph::unit_deleted(const std::string& unit) {
+        // Delete unit from dag
+
+    }
+
+    void DependencyGraph::unit_added(const std::string& unit) {
+        // Parse unit and add to dag
+    }
+
+    void DependencyGraph::unit_renamed(const std::string& old_name, const std::string& new_unit) {
+        // ReName dag entry
+    }
+
+    void DependencyGraph::debug_print() const {
+        for(const auto& node : this->dag) {
             std::cout << node.first << std::endl;
-            std::cout << std::setw(4) << " hash: "<< node.second->get_hash() << std::endl;
-            std::cout << std::setw(4) << " path: "<< node.second->get_file_path() << std::endl;
-            std::cout << std::setw(4) << " entities: " << std::endl;
-
-            for(const auto& entity : node.second->get_entitiy_definitions()) {
-                std::cout << "  " << entity << std::endl;
-            }
+            std::cout << std::setw(4) << " path: "<< node.second.Path << std::endl;
 
             std::cout << std::setw(4) << "dependants: " << std::endl;
-            for(const auto& dependant : node.second->get_dependants()) {
-                std::cout << "  " << dependant.first << std::endl;
+            for(const auto& dependant : node.second.Dependants) {
+                std::cout << "  " << dependant << std::endl;
             }
 
             std::cout << std::endl;
         }
     }
-
-
     
 } // namespace vm

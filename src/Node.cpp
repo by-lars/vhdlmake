@@ -48,7 +48,7 @@ namespace vm {
         return m_Hash;
     }
 
-    const std::vector<std::pair<std::string, Node::pointer_t>> &Node::get_dependants() const {
+    const std::vector<Node::pointer_t> &Node::get_dependants() const {
         return m_Dependants;
     }
 
@@ -60,7 +60,7 @@ namespace vm {
         return m_ComponentDefinitions;
     }
 
-    void Node::add_dependant(const std::pair<std::string, Node::pointer_t>& node) {
+    void Node::add_dependant(const Node::pointer_t& node) {
         m_Dependants.push_back(node);
     }
 }
