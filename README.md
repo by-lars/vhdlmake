@@ -1,3 +1,3 @@
 # vhdl make
 
-A simple build system for vhdl projects.
+A simple build system made especialy for my uni vhdl projects.

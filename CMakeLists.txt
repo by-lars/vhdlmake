@@ -8,7 +8,6 @@ endif()
 
 set(SOURCES 
     "src/Main.cpp"
-    "src/Node.cpp"
     "src/DependencyGraph.cpp"
     "src/Builder.cpp"
 )
@@ -17,3 +16,5 @@ add_subdirectory(vendor/json)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

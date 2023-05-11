@@ -1,15 +1,14 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
-
-#include "Node.hpp"
+#include <vector>
 
 namespace vm {
     struct Unit {
         std::string Path;
-        std::vector<std::string> Dependants;
-        std::vector<std::string> Entities;
+        std::vector<Unit*> Dependants;
         std::vector<std::string> Components;
+        size_t Hash;
     };
 
     struct UnitData {
@@ -17,22 +16,22 @@ namespace vm {
         std::vector<std::string> Components;
     };
 
+
     class DependencyGraph {
     public:
         DependencyGraph(const std::string& directory, const std::string& cache_file);
 
-        void unit_updated(const std::string& unit);
-        void unit_deleted(const std::string& unit);
-        void unit_added(const std::string& unit);
-        void unit_renamed(const std::string& old_name, const std::string& new_unit);
+        std::vector<std::string> get_update_list();
 
+        void save_cache(const std::string& cache_file) const;
         void debug_print() const;
-    private:
-        void build_dag(const std::string& directory);
 
-        UnitData parse_unit(std::stringstream& unit);
+    private:
+        void build_dag(const std::string& directory, const std::string& cache_file);
+        UnitData parse_unit(std::stringstream& unit) const;
 
         std::unordered_map<std::string, Unit> dag;
         std::unordered_map<std::string, std::string> entity_to_file;
+        std::vector<Unit*> changed_units;
     };
 } // namespace vm
