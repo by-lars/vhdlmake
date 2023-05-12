@@ -16,7 +16,6 @@ namespace vm {
         std::string cmd_link(const std::string& entity);
         std::string cmd_run(const std::string& entity);
 
-        std::string m_BuildDirectory;
         std::string m_CacheFile;
         std::string m_SourceDirectory;
         std::string m_BinaryDirectory;

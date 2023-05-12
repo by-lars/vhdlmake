@@ -8,19 +8,14 @@ namespace fs = std::filesystem;
 
 namespace vm {
     Builder::Builder() {
-        m_BuildDirectory = "build";
         m_BinaryDirectory = "bin";
         m_VcdDirectory = "vcd";
-        m_CacheFile = m_BuildDirectory + "/vhdlmake.cache"; 
+        m_CacheFile = ".vhdlmake"; 
         m_SourceDirectory = fs::current_path();
     }
 
     void Builder::prepare() {
         // Make sure buid directory exists
-        if(!fs::exists(m_BuildDirectory)) {
-            fs::create_directory(m_BuildDirectory);
-        }
-
         if(!fs::exists(m_BinaryDirectory)) {
             fs::create_directory(m_BinaryDirectory);
         }
@@ -32,19 +27,19 @@ namespace vm {
 
     std::string Builder::cmd_compile(const std::string& file) {
         std::stringstream stream;
-        stream << "ghdl -a --workdir=" << m_BuildDirectory << " " << file;
+        stream << "ghdl -a " << file;
         return stream.str();
     }
 
     std::string Builder::cmd_link(const std::string& entity) {
         std::stringstream stream;
-        stream << "cd " << m_BuildDirectory << "; ghdl -e " << entity;
+        stream << " ghdl -e " << entity;
         return stream.str();
     }
 
     std::string Builder::cmd_run(const std::string& entity) {
         std::stringstream stream;
-        stream << "cd " << m_BinaryDirectory <<  "; ghdl -r " << entity << " --vcd=../" << m_VcdDirectory << "/" << entity << ".vcd";
+        stream << "ghdl -r " << entity << " --vcd=" << m_VcdDirectory << "/" << entity << ".vcd";
         return stream.str();
     }
 
@@ -71,9 +66,8 @@ namespace vm {
             system(command.c_str());
 
             // Move executable to bianry dir
-            auto file_path = m_BuildDirectory + "/" + entity;
-            if(fs::exists(file_path)) {
-                fs::rename(file_path, m_BinaryDirectory + "/" + entity);
+            if(fs::exists(entity)) {
+                fs::rename(entity, m_BinaryDirectory + "/" + entity);
             }
         }
 
@@ -88,9 +82,19 @@ namespace vm {
     }
 
     void Builder::clean() {
-        fs::remove_all(m_BinaryDirectory);
-        fs::remove_all(m_BuildDirectory);
-        fs::remove_all(m_VcdDirectory);
+        fs::recursive_directory_iterator working_dir (m_SourceDirectory);
+        
+        for(const auto& file : working_dir) {
+            if(file.path().extension() == ".vcd") {
+                fs::remove(file);
+                std::cout << "[DELETE] " << file << std::endl;
+            } else if(file.path().extension() == ".cf") {
+                fs::remove(file);
+                std::cout << "[DELETE] " << file << std::endl;
+            }
+        }
+
+        std::cout << "Cleaned" << std::endl;
         prepare();
     }
 
