@@ -2,7 +2,7 @@
 
 #include "Builder.hpp"
 
-#define VHDLMAKE_VERSION "0.1.0"
+#define VHDLMAKE_VERSION "0.1.1"
 
 static void help() {
     std::cout << "List of commands:" << std::endl;
